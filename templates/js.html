@@ -1,0 +1,49 @@
+<script type="text/javascript">
+  const toBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const file = document.querySelector("#file").files[0];
+    const result = await toBase64(file).catch((e) => alert("Invalid data"));
+
+    btn = document.querySelector("#btn");
+
+    empty_container = document.querySelector("#empty_container");
+    output_container = document.querySelector("#output_container");
+
+    let output = document.querySelector("#result");
+    output.innerHTML = "Loading..";
+
+    btn.disabled = true;
+
+    const data = { data: result };
+
+    fetch("/api/v1/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+        btn.disabled = false;
+        empty_container.style.display = "none";
+        output_container.style.display = "block";
+        output.innerHTML = data.result;
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        output.innerHTML = "There was an ERROR..";
+
+        btn.disabled = false;
+      });
+  };
+</script>
